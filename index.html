@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Labyrinthe Infini à Jojo - Édition 55 Skins</title>
+  <style>
+    * { box-sizing: border-box; }
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #030308;
+      font-family: 'Segoe UI', Roboto, sans-serif;
+      color: #fff;
+    }
+    canvas { display: block; }
+
+    /* Écran de Bienvenue */
+    #welcome-screen {
+      position: absolute;
+      inset: 0;
+      background: rgba(3, 3, 10, 0.96);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      text-align: center;
+      padding: 20px;
+    }
+    #welcome-screen h1 {
+      font-size: 32px;
+      color: #00f3ff;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-shadow: 0 0 20px #00f3ff, 0 0 40px #00f3ff;
+      margin-bottom: 30px;
+      max-width: 600px;
+      line-height: 1.3;
+    }
+    #start-btn {
+      background: #ff007f;
+      color: #fff;
+      border: 2px solid #ff007f;
+      padding: 14px 40px;
+      font-size: 20px;
+      font-weight: bold;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 0 20px #ff007f;
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    #start-btn:hover {
+      transform: scale(1.08);
+      box-shadow: 0 0 35px #ff007f;
+      background: #ff2a9d;
+    }
+
+    /* Style général des fenêtres réduisibles */
+    .collapsible-box {
+      position: absolute;
+      background: rgba(8, 8, 20, 0.92);
+      border-radius: 12px;
+      z-index: 10;
+      transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+    }
+    .box-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      cursor: pointer;
+      user-select: none;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .box-title {
+      margin: 0;
+      font-size: 14px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .toggle-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle-btn:hover { background: rgba(255, 255, 255, 0.3); }
+    .box-content { padding: 12px 14px; }
+    .collapsed .box-content { display: none !important; }
+
+    /* Dashboard Gauche */
+    #hud {
+      top: 20px;
+      left: 20px;
+      border: 2px solid #00f3ff;
+      box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+      width: 220px;
+    }
+    #hud .box-title { color: #00f3ff; text-shadow: 0 0 8px #00f3ff; }
+    #hud p { margin: 4px 0; font-size: 12px; color: #c5c6c7; }
+    #hud .keys { font-size: 10px; color: #ff007f; margin-top: 8px; border-top: 1px solid rgba(255,0,127,0.3); padding-top: 6px; text-shadow: 0 0 5px #ff007f; }
+
+    /* Bannière Tutoriel */
+    #tuto-banner {
+      position: absolute;
+      top: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(8, 8, 25, 0.95);
+      border: 2px solid #ffe600;
+      box-shadow: 0 0 30px rgba(255, 230, 0, 0.6);
+      padding: 15px 30px;
+      border-radius: 15px;
+      text-align: center;
+      z-index: 50;
+      pointer-events: none;
+      transition: all 0.3s ease;
+      display: none;
+    }
+    #tuto-banner h2 { margin: 0 0 5px 0; font-size: 16px; color: #ffe600; text-transform: uppercase; letter-spacing: 1px; }
+    #tuto-banner p { margin: 0; font-size: 14px; color: #ffffff; font-weight: bold; }
+    #tuto-banner .sub { font-size: 11px; color: #ff007f; margin-top: 4px; }
+
+    /* Affichage des Pouvoirs Actifs */
+    #active-powers {
+      position: absolute;
+      top: 160px;
+      left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 10;
+      pointer-events: none;
+    }
+    .power-badge {
+      background: rgba(15, 15, 30, 0.95);
+      border: 2px solid #ffe600;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      color: #ffe600;
+      box-shadow: 0 0 12px rgba(255, 230, 0, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Panneau Droite */
+    #inventory {
+      top: 20px;
+      right: 20px;
+      border: 2px solid #ff007f;
+      box-shadow: 0 0 20px rgba(255, 0, 127, 0.4);
+      width: 350px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+    }
+    #inventory .box-title { color: #ff007f; text-shadow: 0 0 8px #ff007f; }
+    #inventory .box-content {
+      overflow-y: auto;
+      max-height: calc(90vh - 50px);
+    }
+    
+    table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+    th, td { padding: 4px 6px; text-align: left; font-size: 11px; }
+    th { color: #8892b0; font-weight: normal; font-size: 9px; text-transform: uppercase; }
+    tr:not(:last-child) { border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+    .ball-icon {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+    .count { font-weight: bold; color: #fff; text-align: right; text-shadow: 0 0 5px #fff; }
+
+    .section-subtitle {
+      font-size: 12px;
+      color: #00f3ff;
+      text-transform: uppercase;
+      border-bottom: 1px solid rgba(0, 243, 255, 0.3);
+      padding-bottom: 4px;
+      margin: 10px 0 6px 0;
+      text-shadow: 0 0 8px #00f3ff;
+    }
+    .stored-powers-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .power-use-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid #00f3ff;
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      transition: all 0.2s;
+    }
+    .power-use-btn:hover:not(:disabled) {
+      background: rgba(0, 243, 255, 0.2);
+      transform: translateX(3px);
+    }
+    .power-use-btn:disabled {
+      opacity: 0.3;
+      border-color: #555;
+      cursor: not-allowed;
+    }
+
+    /* Catégories de Skins */
+    .skin-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+    .tab-btn {
+      flex: 1 1 30%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #ccc;
+      padding: 5px 2px;
+      font-size: 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      text-align: center;
+      text-transform: uppercase;
+    }
+    .tab-btn.active {
+      background: #ff007f;
+      color: #fff;
+      border-color: #ff007f;
+      font-weight: bold;
+    }
+
+    .color-grid-container {
+      overflow-y: auto;
+      max-height: 220px;
+      padding-right: 4px;
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 6px;
+      padding: 4px;
+    }
+    .color-grid-container::-webkit-scrollbar { width: 5px; }
+    .color-grid-container::-webkit-scrollbar-thumb { background: #ff007f; border-radius: 3px; }
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+    }
+    .color-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 6px 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .color-btn:hover:not(.locked) {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+    }
+    .color-btn.active {
+      border-color: #ffe600;
+      box-shadow: 0 0 10px #ffe600;
+    }
+    .color-btn.locked {
+      opacity: 0.45;
+      cursor: not-allowed;
+      filter: grayscale(0.7);
+    }
+    .color-preview {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      margin-bottom: 3px;
+    }
+    .color-name { font-size: 9px; text-align: center; color: #ddd; font-weight: bold; }
+    .color-req { font-size: 8px; color: #ff007f; margin-top: 2px; text-align: center; font-weight: bold; }
+
+    .action-btn {
+      display: block;
+      width: 100%;
+      margin-top: 8px;
+      background: transparent;
+      border: 1px solid #00f3ff;
+      color: #00f3ff;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .action-btn:hover {
+      background: #00f3ff;
+      color: #000;
+      box-shadow: 0 0 10px #00f3ff;
+    }
+    #reset-btn {
+      border-color: rgba(255, 0, 85, 0.5);
+      color: #ff0055;
+    }
+    #reset-btn:hover {
+      background: #ff0055;
+      color: #fff;
+      box-shadow: 0 0 10px #ff0055;
+    }
+
+    #toast {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(3, 3, 8, 0.95);
+      color: #fff;
+      padding: 10px 25px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+      border: 2px solid #00f3ff;
+      box-shadow: 0 0 25px #00f3ff;
+      z-index: 10;
+    }
+
+    #party-banner {
+      position: absolute;
+      top: 35%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.5);
+      background: rgba(3, 3, 12, 0.95);
+      border: 3px solid #ffe600;
+      box-shadow: 0 0 40px #ffe600;
+      border-radius: 20px;
+      padding: 25px 45px;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+      z-index: 20;
+    }
+    #party-banner.show { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+    #party-title { font-size: 26px; font-weight: 900; text-transform: uppercase; margin: 0; letter-spacing: 2px; }
+    #party-sub { font-size: 14px; margin-top: 8px; color: #eee; }
+  </style>
+</head>
+<body>
+
+  <!-- Écran de Bienvenue -->
+  <div id="welcome-screen">
+    <h1>Bienvenue dans le labyrinthe infini à jojo</h1>
+    <button id="start-btn">C'est parti !</button>
+  </div>
+
+  <!-- Instructions Tutoriel Interactif -->
+  <div id="tuto-banner">
+    <h2 id="tuto-title">🎓 TUTORIEL INTERACTIF</h2>
+    <p id="tuto-text">Chargement du tutoriel...</p>
+    <div class="sub" id="tuto-sub">⚠️ Les billes d'exemples ramassées ici ne comptent pas dans tes stats !</div>
+  </div>
+
+  <!-- HUD Gauche -->
+  <div id="hud" class="collapsible-box">
+    <div class="box-header" onclick="toggleBox('hud')">
+      <span class="box-title">⚡ Infos Joueur</span>
+      <button class="toggle-btn" id="hud-toggle">-</button>
+    </div>
+    <div class="box-content">
+      <p>Distance : <strong id="dist" style="color:#00f3ff;">0</strong> m</p>
+      <p>Temps de jeu : <strong id="playtime" style="color:#ffe600;">00:00</strong></p>
+      <p>Secteur : <span id="pos">X: 0, Y: 0</span></p>
+      <div class="keys">Déplacement : <b>Flèches</b> / <b>ZQSD</b></div>
+    </div>
+  </div>
+
+  <div id="active-powers"></div>
+
+  <!-- Inventaire Droite -->
+  <div id="inventory" class="collapsible-box">
+    <div class="box-header" onclick="toggleBox('inventory')">
+      <span class="box-title">🔮 Inventaire & 55 Skins</span>
+      <button class="toggle-btn" id="inventory-toggle">-</button>
+    </div>
+    <div class="box-content">
+      <div class="section-subtitle" style="margin-top:0;">🔮 Orbes Collectées</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Rareté</th>
+            <th>Nom</th>
+            <th style="text-align: right;">Total</th>
+          </tr>
+        </thead>
+        <tbody id="ball-list"></tbody>
+      </table>
+
+      <div class="section-subtitle">🎒 Stock de Pouvoirs</div>
+      <div class="stored-powers-list" id="powers-stock-list"></div>
+
+      <div class="section-subtitle">🎨 Skins de Boule (1 à 55)</div>
+      <div class="skin-tabs">
+        <button class="tab-btn active" onclick="switchSkinTab('cat1')">Départ (1-10)</button>
+        <button class="tab-btn" onclick="switchSkinTab('cat2')">Moyen (11-25)</button>
+        <button class="tab-btn" onclick="switchSkinTab('cat3')">Légende (26-40)</button>
+        <button class="tab-btn" onclick="switchSkinTab('cat4')">Rare (41-48)</button>
+        <button class="tab-btn" onclick="switchSkinTab('cat5')">Ultime (49-50)</button>
+        <button class="tab-btn" onclick="switchSkinTab('cat6')">Spécial (51-55)</button>
+      </div>
+
+      <div class="color-grid-container">
+        <div id="skin-grid" class="color-grid"></div>
+      </div>
+
+      <button id="relaunch-tuto-btn" class="action-btn">🎓 Revoir le tutoriel</button>
+      <button id="reset-btn" class="action-btn">🗑️ Réinitialiser la partie</button>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <div id="party-banner">
+    <div id="party-title">🎉 FÉLICITATIONS ! 🎉</div>
+    <div id="party-sub">Tu as trouvé un trésor !</div>
+  </div>
+
+  <canvas id="gameCanvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const CELL_SIZE = 60;
+    const CHUNK_SIZE = 8;
+    const PLAYER_RADIUS = 12;
+    const BASE_PLAYER_SPEED = 4.5;
+    const ORB_RADIUS = 8;
+    const SAVE_KEY = 'jojo_maze_save_data_v6';
+    const TUTO_KEY = 'jojo_maze_tuto_done_v1';
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    function toggleBox(id) {
+      const el = document.getElementById(id);
+      const btn = document.getElementById(id + '-toggle');
+      el.classList.toggle('collapsed');
+      btn.textContent = el.classList.contains('collapsed') ? '+' : '-';
+    }
+
+    const ORB_TYPES = [
+      { id: 1, name: 'Commune',   color: '#00ff66', glow: '#00ff66', prob: 68.0,  count: 0 },
+      { id: 2, name: 'Rare',      color: '#00bfff', glow: '#00bfff', prob: 21.0,  count: 0 },
+      { id: 3, name: 'Épique',    color: '#bf00ff', glow: '#bf00ff', prob: 8.0,   count: 0 },
+      { id: 4, name: 'Légendaire',color: '#ffe600', glow: '#ffe600', prob: 0.79,  count: 0, celebration: true },
+      { id: 5, name: 'Divine',    color: '#00ffff', glow: '#ff00ff', prob: 0.08,  count: 0, celebration: true, divine: true },
+      { id: 6, name: 'Cosmique',  color: '#ff007f', glow: '#00f3ff', prob: 0.01,  count: 0, cosmic: true, celebration: true }
+    ];
+
+    const POWER_TYPES = [
+      { id: 'radar', name: 'Boussole Spéciale', icon: '🧭', duration: 30, color: '#ffe600' },
+      { id: 'ghost', name: 'Passe-Muraille', icon: '👻', duration: 10, color: '#00f3ff' },
+      { id: 'triple', name: 'Multiplicateur x3', icon: '⚡', duration: 0,  color: '#ff007f' },
+      { id: 'magnet', name: 'Aimant Cosmique', icon: '🧲', duration: 40, color: '#bf00ff' },
+      { id: 'speed', name: 'Vitesse Lumière', icon: '🚀', duration: 25, color: '#00ff66' }
+    ];
+
+    const storedPowers = { radar: 0, ghost: 0, triple: 0, magnet: 0, speed: 0 };
+
+    // EXACTEMENT LES 55 SKINS DU JEU
+    const SKIN_TYPES = [
+      // 🟢 Catégorie 1 : Départ (Skin 1 à 10) — Communes
+      { id: 'magenta', name: 'Magenta', color: '#ff007f', glow: '#ff007f', reqText: 'Gratuit', category: 'cat1', unlock: () => true },
+      { id: 'cyan', name: 'Cyan', color: '#00f3ff', glow: '#00f3ff', reqText: 'Gratuit', category: 'cat1', unlock: () => true },
+      { id: 'com_1', name: 'Commune n° 1', color: '#26ff73', glow: '#26ff73', reqText: '25 Communes', category: 'cat1', unlock: () => ORB_TYPES[0].count >= 25 },
+      { id: 'com_2', name: 'Commune n° 2', color: '#26ff9e', glow: '#26ff9e', reqText: '50 Communes', category: 'cat1', unlock: () => ORB_TYPES[0].count >= 50 },
+      { id: 'com_3', name: 'Commune n° 3', color: '#26ffc9', glow: '#26ffc9', reqText: '100 Communes', category: 'cat1', unlock: () => ORB_TYPES[0].count >= 100 },
+      { id: 'com_4', name: 'Commune n° 4', color: '#26f5ff', glow: '#26f5ff', reqText: '150 Communes', category: 'cat1', unlock: () => ORB_TYPES[0].count >= 150 },
+      { id: 'com_5', name: 'Commune n° 5', color: '#26cbff', glow: '#26cbff', reqText: '200 Communes', category: 'cat1', unlock: () => ORB_TYPES[0].count >= 200 },
+      { id: 'com_10', name: 'Commune n° 10', color: '#26a0ff', glow: '#26a0ff', reqText: '300 Communes', category: 'cat1', unlock: () => ORB_TYPES[0].count >= 300 },
+      { id: 'com_15', name: 'Commune n° 15', color: '#2675ff', glow: '#2675ff', reqText: '450 Communes', category: 'cat1', unlock: () => ORB_TYPES[0].count >= 450 },
+      { id: 'ambre', name: 'Ambre', color: '#ffaa00', glow: '#ffaa00', reqText: '600 Communes', category: 'cat1', unlock: () => ORB_TYPES[0].count >= 600 },
+
+      // 🔵 Catégorie 2 : Moyen (Skin 11 à 25) — Rares
+      { id: 'com_20', name: 'Commun #20', color: '#4a41ff', glow: '#4a41ff', reqText: '15 Rares', category: 'cat2', unlock: () => ORB_TYPES[1].count >= 15 },
+      { id: 'com_25', name: 'Commun #25', color: '#7541ff', glow: '#7541ff', reqText: '30 Rares', category: 'cat2', unlock: () => ORB_TYPES[1].count >= 30 },
+      { id: 'com_30', name: 'Commun #30', color: '#a041ff', glow: '#a041ff', reqText: '45 Rares', category: 'cat2', unlock: () => ORB_TYPES[1].count >= 45 },
+      { id: 'com_35', name: 'Commun #35', color: '#cb41ff', glow: '#cb41ff', reqText: '60 Rares', category: 'cat2', unlock: () => ORB_TYPES[1].count >= 60 },
+      { id: 'com_40', name: 'Commun #40', color: '#f541ff', glow: '#f541ff', reqText: '75 Rares', category: 'cat2', unlock: () => ORB_TYPES[1].count >= 75 },
+      { id: 'com_45', name: 'Commun #45', color: '#ff41c9', glow: '#ff41c9', reqText: '90 Rares', category: 'cat2', unlock: () => ORB_TYPES[1].count >= 90 },
+      { id: 'com_50', name: 'Commun #50', color: '#ff419e', glow: '#ff419e', reqText: '105 Rares', category: 'cat2', unlock: () => ORB_TYPES[1].count >= 105 },
+      { id: 'hybrid', name: 'Peau Hybride', color: '#00ffaa', glow: '#bf00ff', reqText: '120 Rares + 500 Communes', category: 'cat2', unlock: () => ORB_TYPES[1].count >= 120 && ORB_TYPES[0].count >= 500 },
+      { id: 'com_60', name: 'Commun #60', color: '#ff4172', glow: '#ff4172', reqText: '135 Rares', category: 'cat2', unlock: () => ORB_TYPES[1].count >= 135 },
+      { id: 'com_70', name: 'Commun #70', color: '#ff4a41', glow: '#ff4a41', reqText: '150 Rares', category: 'cat2', unlock: () => ORB_TYPES[1].count >= 150 },
+      { id: 'com_80', name: 'Commun #80', color: '#ff7541', glow: '#ff7541', reqText: '170 Rares', category: 'cat2', unlock: () => ORB_TYPES[1].count >= 170 },
+      { id: 'com_90', name: 'Commun #90', color: '#ffa041', glow: '#ffa041', reqText: '190 Rares', category: 'cat2', unlock: () => ORB_TYPES[1].count >= 190 },
+      { id: 'com_100', name: 'Commun #100', color: '#ffcb41', glow: '#ffcb41', reqText: '210 Rares', category: 'cat2', unlock: () => ORB_TYPES[1].count >= 210 },
+      { id: 'titan', name: 'Skin Titanesque', color: '#ff0055', glow: '#ffe600', reqText: '250 Rares + 1 000 Communes', category: 'cat2', unlock: () => ORB_TYPES[1].count >= 250 && ORB_TYPES[0].count >= 1000 },
+      { id: 'plasma', name: 'Plasma', color: '#e600ff', glow: '#e600ff', reqText: '300 Rares', category: 'cat2', unlock: () => ORB_TYPES[1].count >= 300 },
+
+      // 🟣 Catégorie 3 : Légende (Skin 26 à 40) — Épiques
+      { id: 'leg_1', name: 'Légendaire n° 1', color: '#fffb00', glow: '#fffb00', reqText: '10 Épiques', category: 'cat3', unlock: () => ORB_TYPES[2].count >= 10 },
+      { id: 'leg_2', name: 'Légendaire n° 2', color: '#ffd000', glow: '#ffd000', reqText: '20 Épiques', category: 'cat3', unlock: () => ORB_TYPES[2].count >= 20 },
+      { id: 'leg_3', name: 'Légendaire n° 3', color: '#ffa600', glow: '#ffa600', reqText: '30 Épiques', category: 'cat3', unlock: () => ORB_TYPES[2].count >= 30 },
+      { id: 'leg_4', name: 'Légendaire n° 4', color: '#ff7b00', glow: '#ff7b00', reqText: '40 Épiques', category: 'cat3', unlock: () => ORB_TYPES[2].count >= 40 },
+      { id: 'leg_5', name: 'Légendaire n° 5', color: '#ff5100', glow: '#ff5100', reqText: '50 Épiques', category: 'cat3', unlock: () => ORB_TYPES[2].count >= 50 },
+      { id: 'leg_6', name: 'Légendaire n° 6', color: '#ff2600', glow: '#ff2600', reqText: '65 Épiques', category: 'cat3', unlock: () => ORB_TYPES[2].count >= 65 },
+      { id: 'leg_7', name: 'Légendaire n° 7', color: '#ff0037', glow: '#ff0037', reqText: '80 Épiques', category: 'cat3', unlock: () => ORB_TYPES[2].count >= 80 },
+      { id: 'leg_8', name: 'Légendaire n° 8', color: '#ff006a', glow: '#ff006a', reqText: '95 Épiques', category: 'cat3', unlock: () => ORB_TYPES[2].count >= 95 },
+      { id: 'leg_9', name: 'Légendaire n° 9', color: '#ff009d', glow: '#ff009d', reqText: '110 Épiques', category: 'cat3', unlock: () => ORB_TYPES[2].count >= 110 },
+      { id: 'leg_10', name: 'Légendaire #10', color: '#ff00d0', glow: '#ff00d0', reqText: '125 Épiques', category: 'cat3', unlock: () => ORB_TYPES[2].count >= 125 },
+      { id: 'com_120', name: 'Commune n° 120', color: '#d000ff', glow: '#d000ff', reqText: '140 Épiques', category: 'cat3', unlock: () => ORB_TYPES[2].count >= 140 },
+      { id: 'com_140', name: 'Commune n° 140', color: '#9d00ff', glow: '#9d00ff', reqText: '160 Épiques', category: 'cat3', unlock: () => ORB_TYPES[2].count >= 160 },
+      { id: 'com_160', name: 'Commune n° 160', color: '#6a00ff', glow: '#6a00ff', reqText: '180 Épiques', category: 'cat3', unlock: () => ORB_TYPES[2].count >= 180 },
+      { id: 'com_180', name: 'Commune n° 180', color: '#3700ff', glow: '#3700ff', reqText: '200 Épiques', category: 'cat3', unlock: () => ORB_TYPES[2].count >= 200 },
+      { id: 'com_200', name: 'Commune n° 200', color: '#000eff', glow: '#000eff', reqText: '250 Épiques', category: 'cat3', unlock: () => ORB_TYPES[2].count >= 250 },
+
+      // 🟡 Catégorie 4 : Rare & Élite (Skin 41 à 48) — Légendaires
+      { id: 'leg_12', name: 'Légendaire #12', color: '#0077ff', glow: '#0077ff', reqText: '15 Légendaires', category: 'cat4', unlock: () => ORB_TYPES[3].count >= 15 },
+      { id: 'leg_14', name: 'Légendaire #14', color: '#00e1ff', glow: '#00e1ff', reqText: '25 Légendaires', category: 'cat4', unlock: () => ORB_TYPES[3].count >= 25 },
+      { id: 'leg_16', name: 'Légendaire #16', color: '#00ffb7', glow: '#00ffb7', reqText: '35 Légendaires', category: 'cat4', unlock: () => ORB_TYPES[3].count >= 35 },
+      { id: 'leg_18', name: 'Légendaire #18', color: '#00ff4c', glow: '#00ff4c', reqText: '45 Légendaires', category: 'cat4', unlock: () => ORB_TYPES[3].count >= 45 },
+      { id: 'leg_20', name: 'Légendaire #20', color: '#a6ff00', glow: '#a6ff00', reqText: '60 Légendaires', category: 'cat4', unlock: () => ORB_TYPES[3].count >= 60 },
+      { id: 'supreme', name: 'Skin Suprême', color: '#ffea00', glow: '#00ffcc', reqText: '80 Légendaires', category: 'cat4', unlock: () => ORB_TYPES[3].count >= 80 },
+      { id: 'divine_skin', name: 'Bénédiction Divine', color: '#00ffff', glow: '#ff00ff', reqText: '100 Légendaires', category: 'cat4', unlock: () => ORB_TYPES[3].count >= 100 },
+      { id: 'singularity', name: 'Singularité', color: '#1a1a2e', glow: '#00f3ff', reqText: '120 Légendaires', category: 'cat4', unlock: () => ORB_TYPES[3].count >= 120 },
+
+      // 🔥 Catégorie 5 : Ultime (Skin 49 et 50) — Divines & Cosmiques directes
+      { id: 'divine_skin_2', name: 'Bénédiction Divine II', color: '#00ffff', glow: '#ff00ff', reqText: '1 Divine', category: 'cat5', unlock: () => ORB_TYPES[4].count >= 1 },
+      { id: 'cosmic_pure', name: 'Cosmique Pur', color: '#ff007f', glow: '#00f3ff', reqText: '1 Cosmique', category: 'cat5', unlock: () => ORB_TYPES[5].count >= 1 },
+
+      // ✨ Catégorie 6 : Spéciale (Skin 51 à 55) — Mélanges Extrêmes
+      { id: 'super_nova', name: 'Super Nova', color: '#ff3300', glow: '#ff007f', reqText: '2 Divines + 1 Cosmique', category: 'cat6', unlock: () => ORB_TYPES[4].count >= 2 && ORB_TYPES[5].count >= 1 },
+      { id: 'nebula', name: 'Nébuleuse Obscure', color: '#4b0082', glow: '#bf00ff', reqText: '3 Divines + 2 Cos. + 50 Lég.', category: 'cat6', unlock: () => ORB_TYPES[4].count >= 3 && ORB_TYPES[5].count >= 2 && ORB_TYPES[3].count >= 50 },
+      { id: 'celestial', name: 'Seigneur Céleste', color: '#ffd700', glow: '#ffffff', reqText: '5 Divines + 3 Cos. + 100 Épi.', category: 'cat6', unlock: () => ORB_TYPES[4].count >= 5 && ORB_TYPES[5].count >= 3 && ORB_TYPES[2].count >= 100 },
+      { id: 'apocalypse', name: 'Apocalypse Cosmique', color: 'multicolor', glow: 'multicolor', reqText: '8 Div. + 5 Cos. + 150 Lég. + 500 Rares', category: 'cat6', unlock: () => ORB_TYPES[4].count >= 8 && ORB_TYPES[5].count >= 5 && ORB_TYPES[3].count >= 150 && ORB_TYPES[1].count >= 500 },
+      { id: 'sovereign', name: '👑 Souverain Absolu', color: 'sovereign', glow: 'sovereign', reqText: '10 Div / 8 Cos / 200 Lég / 500 Épi / 1000 Rares', category: 'cat6', unlock: () => ORB_TYPES[4].count >= 10 && ORB_TYPES[5].count >= 8 && ORB_TYPES[3].count >= 200 && ORB_TYPES[2].count >= 500 && ORB_TYPES[1].count >= 1000 }
+    ];
+
+    let currentSkinTab = 'cat1';
+    let currentSkin = 'magenta';
+    let collectedOrbs = new Set();
+    let collectedPowers = new Set();
+    const spawnedCheats = new Map();
+    const particles = [];
+
+    let activePlayTime = 0; 
+    let totalDistanceTraveled = 0;
+
+    const activePowers = { radarTimer: 0, ghostTimer: 0, tripleCharge: false, magnetTimer: 0, speedTimer: 0 };
+
+    const player = { x: (CHUNK_SIZE * CELL_SIZE) / 2, y: (CHUNK_SIZE * CELL_SIZE) / 2 };
+
+    let audioCtx = null;
+    let musicStarted = false;
+
+    function initAudio() {
+      if (musicStarted) return;
+      try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        musicStarted = true;
+        const notes = [261.63, 329.63, 392.00, 523.25, 440.00, 349.23, 392.00, 493.88];
+        let noteIdx = 0;
+
+        setInterval(() => {
+          if (!audioCtx || audioCtx.state === 'suspended') return;
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(notes[noteIdx % notes.length], audioCtx.currentTime);
+          gain.gain.setValueAtTime(0.018, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.35);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.35);
+          noteIdx++;
+        }, 280);
+      } catch(e) {}
+    }
+
+    function resumeAudio() {
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+      if (!musicStarted) initAudio();
+    }
+
+    let cheatBuffer = "";
+    window.addEventListener('keydown', (e) => {
+      resumeAudio();
+      if (e.key >= '0' && e.key <= '9') {
+        cheatBuffer += e.key;
+        if (cheatBuffer.length > 30) cheatBuffer = cheatBuffer.slice(-20);
+      } else if (e.key === 'Enter') {
+        if (cheatBuffer.endsWith('12345678945231776')) {
+          const gx = Math.floor(player.x / CELL_SIZE);
+          const gy = Math.floor(player.y / CELL_SIZE);
+          spawnedCheats.set(`${gx},${gy}`, { typeIndex: 5, ...ORB_TYPES[5] });
+          showToast("🌌 CODE SECRET ACTIVÉ : Orbe Cosmique !", "#ff007f");
+        }
+        cheatBuffer = "";
+      }
+    });
+
+    let isTutorialActive = false;
+    let tutoStep = 0;
+    let tutoDummyOrb = null;
+
+    const TUTO_STEPS = [
+      { text: "Appuie sur la FLÈCHE DROITE (ou D) pour te déplacer", check: (dx, dy) => dx > 0 },
+      { text: "Super ! Appuie sur la FLÈCHE DU BAS (ou S)", check: (dx, dy) => dy > 0 },
+      { text: "Ramasse l'Exemple 1 : Bille COMMUNE", spawnOrb: 0 },
+      { text: "Ramasse l'Exemple 2 : Bille DIVINE", spawnOrb: 4 },
+      { text: "Ramasse l'Exemple 3 : Bille COSMIQUE", spawnOrb: 5 }
+    ];
+
+    function startInteractiveTutorial() {
+      isTutorialActive = true;
+      tutoStep = 0;
+      tutoDummyOrb = null;
+      document.getElementById('tuto-banner').style.display = 'block';
+      updateTutoStepUI();
+    }
+
+    function updateTutoStepUI() {
+      const bannerText = document.getElementById('tuto-text');
+      if (tutoStep < TUTO_STEPS.length) {
+        bannerText.textContent = TUTO_STEPS[tutoStep].text;
+        if (TUTO_STEPS[tutoStep].spawnOrb !== undefined) {
+          const typeIdx = TUTO_STEPS[tutoStep].spawnOrb;
+          tutoDummyOrb = {
+            x: player.x + 80,
+            y: player.y + 60,
+            typeIndex: typeIdx,
+            ...ORB_TYPES[typeIdx]
+          };
+        }
+      } else {
+        document.getElementById('tuto-banner').style.display = 'none';
+        isTutorialActive = false;
+        tutoDummyOrb = null;
+        localStorage.setItem(TUTO_KEY, 'true');
+        showToast("🎮 Tutoriel terminé !", "#00f3ff");
+      }
+    }
+
+    document.getElementById('start-btn').addEventListener('click', () => {
+      resumeAudio();
+      document.getElementById('welcome-screen').style.display = 'none';
+      if (!localStorage.getItem(TUTO_KEY)) startInteractiveTutorial();
+    });
+
+    document.getElementById('relaunch-tuto-btn').addEventListener('click', () => {
+      startInteractiveTutorial();
+    });
+
+    function saveGame() {
+      const saveData = {
+        counts: ORB_TYPES.map(o => o.count),
+        currentSkin,
+        storedPowers,
+        collectedOrbs: Array.from(collectedOrbs),
+        collectedPowers: Array.from(collectedPowers),
+        playerPos: { x: player.x, y: player.y },
+        activePlayTime,
+        totalDistanceTraveled
+      };
+      localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+    }
+
+    function loadGame() {
+      const data = localStorage.getItem(SAVE_KEY);
+      if (!data) return;
+      try {
+        const parsed = JSON.parse(data);
+        if (parsed.counts) parsed.counts.forEach((c, idx) => { if (ORB_TYPES[idx]) ORB_TYPES[idx].count = c; });
+        if (parsed.currentSkin) currentSkin = parsed.currentSkin;
+        if (parsed.storedPowers) Object.assign(storedPowers, parsed.storedPowers);
+        if (parsed.collectedOrbs) collectedOrbs = new Set(parsed.collectedOrbs);
+        if (parsed.collectedPowers) collectedPowers = new Set(parsed.collectedPowers);
+        if (parsed.playerPos) { player.x = parsed.playerPos.x; player.y = parsed.playerPos.y; }
+        if (parsed.activePlayTime !== undefined) activePlayTime = parsed.activePlayTime;
+        if (parsed.totalDistanceTraveled) totalDistanceTraveled = parsed.totalDistanceTraveled;
+      } catch (e) {}
+    }
+
+    function resetGame() {
+      if (confirm('Réinitialiser la partie ?')) {
+        localStorage.removeItem(SAVE_KEY);
+        localStorage.removeItem(TUTO_KEY);
+        location.reload();
+      }
+    }
+
+    document.getElementById('reset-btn').addEventListener('click', resetGame);
+
+    const keys = {};
+    window.addEventListener('keydown', e => { 
+      keys[e.code] = true; 
+      resumeAudio(); 
+      if (e.key === '1') triggerStoredPower('radar');
+      if (e.key === '2') triggerStoredPower('ghost');
+      if (e.key === '3') triggerStoredPower('triple');
+      if (e.key === '4') triggerStoredPower('magnet');
+      if (e.key === '5') triggerStoredPower('speed');
+    });
+    window.addEventListener('keyup', e => keys[e.code] = false);
+    window.addEventListener('beforeunload', saveGame);
+
+    function initTable() {
+      const tbody = document.getElementById('ball-list');
+      tbody.innerHTML = '';
+      ORB_TYPES.forEach(orb => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><span class="ball-icon" style="background:${orb.color}; box-shadow: 0 0 8px ${orb.color};"></span></td>
+          <td style="color:${orb.color}; font-weight: bold; text-shadow: 0 0 5px ${orb.color};">${orb.name}</td>
+          <td class="count" id="count-${orb.id}">${orb.count}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+      updatePowersStockUI();
+      updateSkinsUI();
+    }
+
+    function updatePowersStockUI() {
+      const container = document.getElementById('powers-stock-list');
+      container.innerHTML = '';
+
+      POWER_TYPES.forEach(pow => {
+        const count = storedPowers[pow.id] || 0;
+        const btn = document.createElement('button');
+        btn.className = 'power-use-btn';
+        btn.disabled = count <= 0;
+        btn.innerHTML = `
+          <span>${pow.icon} ${pow.name}</span>
+          <span style="font-weight:bold; color:${pow.color};">x${count} (Utiliser)</span>
+        `;
+        btn.onclick = () => triggerStoredPower(pow.id);
+        container.appendChild(btn);
+      });
+    }
+
+    function triggerStoredPower(powId) {
+      if ((storedPowers[powId] || 0) <= 0) return;
+      const power = POWER_TYPES.find(p => p.id === powId);
+      if (!power) return;
+
+      storedPowers[powId]--;
+      showToast(`🔥 Pouvoir activé : ${power.name} !`, power.color);
+
+      if (power.id === 'radar') activePowers.radarTimer = power.duration;
+      if (power.id === 'ghost') activePowers.ghostTimer = power.duration;
+      if (power.id === 'triple') activePowers.tripleCharge = true;
+      if (power.id === 'magnet') activePowers.magnetTimer = power.duration;
+      if (power.id === 'speed') activePowers.speedTimer = power.duration;
+
+      saveGame();
+      updatePowersStockUI();
+    }
+
+    function switchSkinTab(tab) {
+      currentSkinTab = tab;
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      updateSkinsUI();
+    }
+
+    function updateSkinsUI() {
+      const grid = document.getElementById('skin-grid');
+      grid.innerHTML = '';
+
+      const filteredSkins = SKIN_TYPES.filter(s => s.category === currentSkinTab);
+
+      filteredSkins.forEach(skin => {
+        const unlocked = skin.unlock();
+        const active = skin.id === currentSkin;
+
+        const btn = document.createElement('div');
+        btn.className = `color-btn ${unlocked ? '' : 'locked'} ${active ? 'active' : ''}`;
+
+        const preview = document.createElement('div');
+        preview.className = 'color-preview';
+        
+        if (skin.color === 'multicolor' || skin.color === 'sovereign') {
+          preview.style.background = 'linear-gradient(135deg, #ff0000, #ffaa00, #00ff00, #00f3ff, #9900ff)';
+        } else {
+          preview.style.background = skin.color;
+          preview.style.boxShadow = `0 0 6px ${skin.color}`;
+        }
+
+        const name = document.createElement('div');
+        name.className = 'color-name';
+        name.textContent = skin.name;
+
+        btn.appendChild(preview);
+        btn.appendChild(name);
+
+        if (!unlocked) {
+          const req = document.createElement('div');
+          req.className = 'color-req';
+          req.textContent = skin.reqText;
+          btn.appendChild(req);
+        }
+
+        btn.onclick = () => {
+          if (unlocked) {
+            currentSkin = skin.id;
+            saveGame();
+            updateSkinsUI();
+            showToast(`🎨 Skin équipé : ${skin.name}`, '#00f3ff');
+          } else {
+            showToast(`🔒 Requis : ${skin.reqText}`, '#ff0055');
+          }
+        };
+
+        grid.appendChild(btn);
+      });
+    }
+
+    loadGame();
+    initTable();
+
+    function showToast(message, color) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.style.borderColor = color;
+      toast.style.boxShadow = `0 0 25px ${color}`;
+      toast.style.opacity = '1';
+      setTimeout(() => { toast.style.opacity = '0'; }, 2200);
+    }
+
+    function triggerCelebration(orb) {
+      const banner = document.getElementById('party-banner');
+      const title = document.getElementById('party-title');
+      const sub = document.getElementById('party-sub');
+
+      banner.style.borderColor = orb.color;
+      banner.style.boxShadow = `0 0 40px ${orb.color}`;
+      title.style.color = orb.color;
+
+      if (orb.cosmic) {
+        title.textContent = '🌌 ORBE COSMIQUE ! 🌌';
+        sub.textContent = 'Rareté Ultime !';
+      } else if (orb.divine) {
+        title.textContent = '✨ ORBE DIVINE ! ✨';
+        sub.textContent = 'Rareté Suprême !';
+      } else {
+        title.textContent = '⭐ ORBE LÉGENDAIRE ! ⭐';
+        sub.textContent = 'Trouvaille extrêmement rare !';
+      }
+
+      banner.classList.add('show');
+      setTimeout(() => { banner.classList.remove('show'); }, 2800);
+
+      for (let i = 0; i < 120; i++) {
+        particles.push({
+          x: canvas.width / 2, y: canvas.height / 2,
+          vx: (Math.random() - 0.5) * 16, vy: (Math.random() - 0.7) * 16,
+          size: Math.random() * 8 + 4, color: orb.color, alpha: 1, decay: 0.015
+        });
+      }
+    }
+
+    function seededRandom(seed) {
+      let x = Math.sin(seed++) * 10000;
+      return x - Math.floor(x);
+    }
+
+    function getHash(a, b) {
+      let h = a * 374761393 + b * 668265263;
+      h = (h ^ (h >> 13)) * 1274126177;
+      return h ^ (h >> 16);
+    }
+
+    const chunkCache = new Map();
+    function generateChunk(cx, cy) {
+      const key = `${cx},${cy}`;
+      if (chunkCache.has(key)) return chunkCache.get(key);
+
+      let seed = getHash(cx, cy);
+      const random = () => { seed++; return seededRandom(seed); };
+
+      const grid = [];
+      for (let y = 0; y < CHUNK_SIZE; y++) {
+        grid[y] = [];
+        for (let x = 0; x < CHUNK_SIZE; x++) {
+          grid[y][x] = { top: true, right: true, bottom: true, left: true, visited: false };
+        }
+      }
+
+      const stack = [{ x: 0, y: 0 }];
+      grid[0][0].visited = true;
+
+      while (stack.length > 0) {
+        const current = stack[stack.length - 1];
+        const neighbors = [];
+        const dirs = [
+          { dx: 0, dy: -1, wall: 'top', opp: 'bottom' },
+          { dx: 1, dy: 0, wall: 'right', opp: 'left' },
+          { dx: 0, dy: 1, wall: 'bottom', opp: 'top' },
+          { dx: -1, dy: 0, wall: 'left', opp: 'right' }
+        ];
+
+        for (const dir of dirs) {
+          const nx = current.x + dir.dx, ny = current.y + dir.dy;
+          if (nx >= 0 && nx < CHUNK_SIZE && ny >= 0 && ny < CHUNK_SIZE && !grid[ny][nx].visited) {
+            neighbors.push({ x: nx, y: ny, dir });
+          }
+        }
+
+        if (neighbors.length > 0) {
+          const chosen = neighbors[Math.floor(random() * neighbors.length)];
+          grid[current.y][current.x][chosen.dir.wall] = false;
+          grid[chosen.y][chosen.x][chosen.dir.opp] = false;
+          grid[chosen.y][chosen.x].visited = true;
+          stack.push({ x: chosen.x, y: chosen.y });
+        } else stack.pop();
+      }
+
+      const mid = Math.floor(CHUNK_SIZE / 2);
+      grid[0][mid].top = false; grid[CHUNK_SIZE - 1][mid].bottom = false;
+      grid[mid][0].left = false; grid[mid][CHUNK_SIZE - 1].right = false;
+
+      chunkCache.set(key, grid);
+      return grid;
+    }
+
+    function getOrbInCell(gx, gy) {
+      const key = `${gx},${gy}`;
+      if (spawnedCheats.has(key) && !collectedOrbs.has(key)) return spawnedCheats.get(key);
+      if (isTutorialActive || collectedOrbs.has(key)) return null;
+
+      let seed = getHash(gx, gy + 9999);
+      if (seededRandom(seed) > 0.045) return null;
+
+      let roll = seededRandom(seed + 1) * 100, cummulative = 0;
+      for (let i = 0; i < ORB_TYPES.length; i++) {
+        cummulative += ORB_TYPES[i].prob;
+        if (roll <= cummulative) return { typeIndex: i, ...ORB_TYPES[i] };
+      }
+      return { typeIndex: 0, ...ORB_TYPES[0] };
+    }
+
+    function getPowerInCell(gx, gy) {
+      if (isTutorialActive) return null;
+      const key = `${gx},${gy}`;
+      if (collectedPowers.has(key)) return null;
+
+      let seed = getHash(gx + 5555, gy + 8888);
+      if (seededRandom(seed) > 0.001) return null;
+
+      let typeIdx = Math.floor(seededRandom(seed + 2) * POWER_TYPES.length);
+      return POWER_TYPES[typeIdx];
+    }
+
+    function getWallsInRegion(minX, minY, maxX, maxY) {
+      const walls = [];
+      const minCx = Math.floor(minX / (CHUNK_SIZE * CELL_SIZE)), maxCx = Math.floor(maxX / (CHUNK_SIZE * CELL_SIZE));
+      const minCy = Math.floor(minY / (CHUNK_SIZE * CELL_SIZE)), maxCy = Math.floor(maxY / (CHUNK_SIZE * CELL_SIZE));
+
+      for (let cy = minCy; cy <= maxCy; cy++) {
+        for (let cx = minCx; cx <= maxCx; cx++) {
+          const chunk = generateChunk(cx, cy);
+          const chunkOffsetX = cx * CHUNK_SIZE * CELL_SIZE, chunkOffsetY = cy * CHUNK_SIZE * CELL_SIZE;
+
+          for (let y = 0; y < CHUNK_SIZE; y++) {
+            for (let x = 0; x < CHUNK_SIZE; x++) {
+              const cell = chunk[y][x];
+              const wx = chunkOffsetX + x * CELL_SIZE, wy = chunkOffsetY + y * CELL_SIZE;
+              if (cell.top) walls.push({ x1: wx, y1: wy, x2: wx + CELL_SIZE, y2: wy });
+              if (cell.right) walls.push({ x1: wx + CELL_SIZE, y1: wy, x2: wx + CELL_SIZE, y2: wy + CELL_SIZE });
+              if (cell.bottom) walls.push({ x1: wx, y1: wy + CELL_SIZE, x2: wx + CELL_SIZE, y2: wy + CELL_SIZE });
+              if (cell.left) walls.push({ x1: wx, y1: wy, x2: wx, y2: wy + CELL_SIZE });
+            }
+          }
+        }
+      }
+      return walls;
+    }
+
+    function resolveCollision(px, py, r, wall) {
+      let l2 = (wall.x2 - wall.x1)**2 + (wall.y2 - wall.y1)**2;
+      let t = Math.max(0, Math.min(1, ((px - wall.x1)*(wall.x2 - wall.x1) + (py - wall.y1)*(wall.y2 - wall.y1)) / l2));
+      let projX = wall.x1 + t * (wall.x2 - wall.x1), projY = wall.y1 + t * (wall.y2 - wall.y1);
+      let dx = px - projX, dy = py - projY, dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist < r) {
+        let overlap = r - dist;
+        if (dist === 0) { dx = 1; dy = 0; dist = 1; }
+        return { x: px + (dx / dist) * overlap, y: py + (dy / dist) * overlap };
+      }
+      return { x: px, y: py };
+    }
+
+    function updatePowersUI() {
+      const container = document.getElementById('active-powers');
+      container.innerHTML = '';
+      if (activePowers.radarTimer > 0) container.innerHTML += `<div class="power-badge">🧭 Boussole : ${Math.ceil(activePowers.radarTimer)}s</div>`;
+      if (activePowers.ghostTimer > 0) container.innerHTML += `<div class="power-badge">👻 Passe-Muraille : ${Math.ceil(activePowers.ghostTimer)}s</div>`;
+      if (activePowers.tripleCharge) container.innerHTML += `<div class="power-badge">⚡ Prochaine x3 !</div>`;
+      if (activePowers.magnetTimer > 0) container.innerHTML += `<div class="power-badge">🧲 Aimant : ${Math.ceil(activePowers.magnetTimer)}s</div>`;
+      if (activePowers.speedTimer > 0) container.innerHTML += `<div class="power-badge">🚀 Vitesse Lumière : ${Math.ceil(activePowers.speedTimer)}s</div>`;
+    }
+
+    let lastTime = performance.now();
+    function update() {
+      const now = performance.now();
+      const dt = (now - lastTime) / 1000;
+      lastTime = now;
+
+      if (activePowers.radarTimer > 0) activePowers.radarTimer = Math.max(0, activePowers.radarTimer - dt);
+      if (activePowers.ghostTimer > 0) activePowers.ghostTimer = Math.max(0, activePowers.ghostTimer - dt);
+      if (activePowers.magnetTimer > 0) activePowers.magnetTimer = Math.max(0, activePowers.magnetTimer - dt);
+      if (activePowers.speedTimer > 0) activePowers.speedTimer = Math.max(0, activePowers.speedTimer - dt);
+
+      updatePowersUI();
+
+      let speedMultiplier = activePowers.speedTimer > 0 ? 2.5 : 1.0;
+      let currentSpeed = BASE_PLAYER_SPEED * speedMultiplier;
+
+      let dx = 0, dy = 0;
+      if (keys['ArrowUp'] || keys['KeyW'] || keys['KeyZ']) dy -= 1;
+      if (keys['ArrowDown'] || keys['KeyS']) dy += 1;
+      if (keys['ArrowLeft'] || keys['KeyA'] || keys['KeyQ']) dx -= 1;
+      if (keys['ArrowRight'] || keys['KeyD']) dx += 1;
+
+      if (dx !== 0 && dy !== 0) { dx *= 0.7071; dy *= 0.7071; }
+
+      if (dx !== 0 || dy !== 0) {
+        player.x += dx * currentSpeed;
+        player.y += dy * currentSpeed;
+        activePlayTime += dt;
+        totalDistanceTraveled += (currentSpeed / 10);
+      }
+
+      if (isTutorialActive && tutoStep < TUTO_STEPS.length) {
+        const stepDef = TUTO_STEPS[tutoStep];
+        if (stepDef.check && stepDef.check(dx, dy)) { tutoStep++; updateTutoStepUI(); }
+        else if (tutoDummyOrb && Math.hypot(player.x - tutoDummyOrb.x, player.y - tutoDummyOrb.y) < PLAYER_RADIUS + ORB_RADIUS) {
+          tutoDummyOrb = null; tutoStep++; updateTutoStepUI();
+        }
+      }
+
+      if (activePowers.ghostTimer <= 0) {
+        const walls = getWallsInRegion(player.x - CELL_SIZE, player.y - CELL_SIZE, player.x + CELL_SIZE, player.y + CELL_SIZE);
+        for (let i = 0; i < 3; i++) {
+          for (const wall of walls) {
+            const res = resolveCollision(player.x, player.y, PLAYER_RADIUS, wall);
+            player.x = res.x; player.y = res.y;
+          }
+        }
+      }
+
+      if (!isTutorialActive) {
+        const currentCellX = Math.floor(player.x / CELL_SIZE);
+        const currentCellY = Math.floor(player.y / CELL_SIZE);
+        const scanRadius = activePowers.magnetTimer > 0 ? 5 : 1;
+
+        for (let gy = currentCellY - scanRadius; gy <= currentCellY + scanRadius; gy++) {
+          for (let gx = currentCellX - scanRadius; gx <= currentCellX + scanRadius; gx++) {
+            
+            const power = getPowerInCell(gx, gy);
+            if (power) {
+              const px = gx * CELL_SIZE + CELL_SIZE / 2, py = gy * CELL_SIZE + CELL_SIZE / 2;
+              if (Math.hypot(player.x - px, player.y - py) < PLAYER_RADIUS + 12) {
+                collectedPowers.add(`${gx},${gy}`);
+                storedPowers[power.id] = (storedPowers[power.id] || 0) + 1;
+                showToast(`📦 Pouvoir Récupéré : ${power.name}`, power.color);
+                saveGame();
+                updatePowersStockUI();
+              }
+            }
+
+            const orb = getOrbInCell(gx, gy);
+            if (orb) {
+              const orbX = gx * CELL_SIZE + CELL_SIZE / 2, orbY = gy * CELL_SIZE + CELL_SIZE / 2;
+              if (Math.hypot(player.x - orbX, player.y - orbY) < PLAYER_RADIUS + ORB_RADIUS || (activePowers.magnetTimer > 0 && Math.hypot(player.x - orbX, player.y - orbY) < 55)) {
+                collectedOrbs.add(`${gx},${gy}`);
+                let amountToAdd = activePowers.tripleCharge ? 3 : 1;
+                if (activePowers.tripleCharge) {
+                  showToast(`⚡ MULTIPLICATEUR X3 ! (+3)`, '#ff007f');
+                  activePowers.tripleCharge = false;
+                }
+                ORB_TYPES[orb.typeIndex].count += amountToAdd;
+                document.getElementById(`count-${orb.id}`).textContent = ORB_TYPES[orb.typeIndex].count;
+                saveGame();
+                updateSkinsUI();
+                if (orb.celebration) triggerCelebration(orb);
+                else showToast(`✨ Orbe ${orb.name} (+${amountToAdd})`, orb.color);
+              }
+            }
+          }
+        }
+      }
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx; p.y += p.vy; p.vy += 0.25; p.alpha -= p.decay;
+        if (p.alpha <= 0) particles.splice(i, 1);
+      }
+
+      const totalMins = Math.floor(activePlayTime / 60);
+      const seconds = Math.floor(activePlayTime % 60).toString().padStart(2, '0');
+      document.getElementById('playtime').textContent = `${totalMins}:${seconds}`;
+      document.getElementById('dist').textContent = Math.floor(totalDistanceTraveled);
+      document.getElementById('pos').textContent = `X: ${Math.floor(player.x / (CHUNK_SIZE * CELL_SIZE))}, Y: ${Math.floor(player.y / (CHUNK_SIZE * CELL_SIZE))}`;
+    }
+
+    let time = 0;
+    function render() {
+      time += 0.05;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.save();
+      ctx.translate(canvas.width / 2 - player.x, canvas.height / 2 - player.y);
+
+      const minX = player.x - canvas.width / 2 - CELL_SIZE, maxX = player.x + canvas.width / 2 + CELL_SIZE;
+      const minY = player.y - canvas.height / 2 - CELL_SIZE, maxY = player.y + canvas.height / 2 + CELL_SIZE;
+
+      if (!isTutorialActive) {
+        for (let gy = Math.floor(minY / CELL_SIZE); gy <= Math.floor(maxY / CELL_SIZE); gy++) {
+          for (let gx = Math.floor(minX / CELL_SIZE); gx <= Math.floor(maxX / CELL_SIZE); gx++) {
+            const power = getPowerInCell(gx, gy);
+            if (power) {
+              const bx = gx * CELL_SIZE + CELL_SIZE / 2, by = gy * CELL_SIZE + CELL_SIZE / 2;
+              ctx.save();
+              ctx.shadowColor = power.color; ctx.shadowBlur = 18; ctx.fillStyle = power.color;
+              ctx.beginPath(); ctx.arc(bx, by, 11 + Math.sin(time * 5) * 2, 0, Math.PI * 2); ctx.fill();
+              ctx.font = '12px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+              ctx.fillText(power.icon, bx, by);
+              ctx.restore();
+            }
+
+            const orb = getOrbInCell(gx, gy);
+            if (orb) renderOrbGraphic(gx * CELL_SIZE + CELL_SIZE / 2, gy * CELL_SIZE + CELL_SIZE / 2, orb);
+          }
+        }
+      }
+
+      if (isTutorialActive && tutoDummyOrb) renderOrbGraphic(tutoDummyOrb.x, tutoDummyOrb.y, tutoDummyOrb);
+
+      const walls = getWallsInRegion(minX, minY, maxX, maxY);
+      ctx.strokeStyle = activePowers.ghostTimer > 0 ? 'rgba(0, 243, 255, 0.25)' : '#00f3ff';
+      ctx.lineWidth = 4; ctx.shadowColor = '#00f3ff'; ctx.shadowBlur = activePowers.ghostTimer > 0 ? 2 : 12;
+
+      ctx.beginPath();
+      for (const wall of walls) {
+        ctx.moveTo(wall.x1, wall.y1); ctx.lineTo(wall.x2, wall.y2);
+      }
+      ctx.stroke();
+
+      // Joueur & Effet Ultime Souverain
+      const activeSkinObj = SKIN_TYPES.find(s => s.id === currentSkin) || SKIN_TYPES[0];
+      ctx.save();
+      
+      if (activeSkinObj.color === 'sovereign') {
+        const hue = (time * 200) % 360;
+        const pulseGlow = 40 + Math.sin(time * 8) * 20;
+        
+        const grad = ctx.createRadialGradient(player.x, player.y, 5, player.x, player.y, 200);
+        grad.addColorStop(0, `hsla(${hue}, 100%, 70%, 0.4)`);
+        grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath(); ctx.arc(player.x, player.y, 200, 0, Math.PI * 2); ctx.fill();
+
+        ctx.shadowBlur = pulseGlow;
+        ctx.shadowColor = `hsl(${hue}, 100%, 50%)`;
+        ctx.fillStyle = `hsl(${hue}, 100%, 65%)`;
+      } else if (activeSkinObj.color === 'multicolor') {
+        const hue = (time * 150) % 360;
+        ctx.shadowBlur = 30; ctx.shadowColor = `hsl(${hue}, 100%, 50%)`; ctx.fillStyle = `hsl(${hue}, 100%, 60%)`;
+      } else {
+        ctx.shadowBlur = 20; ctx.shadowColor = activeSkinObj.glow; ctx.fillStyle = activeSkinObj.color;
+      }
+      
+      ctx.beginPath(); ctx.arc(player.x, player.y, PLAYER_RADIUS, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+
+      ctx.restore();
+
+      for (const p of particles) {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, p.alpha);
+        ctx.shadowBlur = 10; ctx.shadowColor = p.color; ctx.fillStyle = p.color;
+        ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+        ctx.restore();
+      }
+    }
+
+    function renderOrbGraphic(bx, by, orb) {
+      ctx.save();
+      ctx.beginPath();
+      if (orb.cosmic) {
+        const hue = (time * 160) % 360;
+        ctx.shadowColor = `hsl(${hue}, 100%, 70%)`; ctx.shadowBlur = 45; ctx.fillStyle = `hsl(${hue}, 100%, 70%)`;
+        ctx.arc(bx, by, ORB_RADIUS + 3, 0, Math.PI * 2); ctx.fill();
+      } else if (orb.divine) {
+        ctx.shadowColor = '#00ffff'; ctx.shadowBlur = 25; ctx.fillStyle = '#ff00ff';
+        ctx.arc(bx, by, ORB_RADIUS + 2, 0, Math.PI * 2); ctx.fill();
+      } else {
+        ctx.shadowColor = orb.glow; ctx.shadowBlur = 14; ctx.fillStyle = orb.color;
+        ctx.arc(bx, by, ORB_RADIUS, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function loop() {
+      update();
+      render();
+      requestAnimationFrame(loop);
+    }
+
+    loop();
+  </script>
+</body>
+</html>
