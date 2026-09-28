@@ -41,6 +41,13 @@
       max-width: 600px;
       line-height: 1.3;
     }
+    .welcome-buttons {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+    }
     #start-btn {
       background: #ff007f;
       color: #fff;
@@ -59,6 +66,27 @@
       transform: scale(1.08);
       box-shadow: 0 0 35px #ff007f;
       background: #ff2a9d;
+    }
+    #arcade-btn-welcome {
+      background: transparent;
+      color: #00f3ff;
+      border: 2px solid #00f3ff;
+      padding: 14px 30px;
+      font-size: 18px;
+      font-weight: bold;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 0 15px #00f3ff;
+      transition: all 0.2s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-decoration: none;
+      display: inline-block;
+    }
+    #arcade-btn-welcome:hover {
+      transform: scale(1.08);
+      box-shadow: 0 0 30px #00f3ff;
+      background: rgba(0, 243, 255, 0.2);
     }
 
     /* Style général des fenêtres réduisibles */
@@ -320,6 +348,8 @@
       border-radius: 6px;
       cursor: pointer;
       transition: all 0.2s;
+      text-align: center;
+      text-decoration: none;
     }
     .action-btn:hover {
       background: #00f3ff;
@@ -381,7 +411,10 @@
   <!-- Écran de Bienvenue -->
   <div id="welcome-screen">
     <h1>Bienvenue dans le labyrinthe infini à jojo</h1>
-    <button id="start-btn">C'est parti !</button>
+    <div class="welcome-buttons">
+      <button id="start-btn">C'est parti !</button>
+      <a href="https://jojosarcade.vercel.app/" id="arcade-btn-welcome">🕹️ Retour à l'arcade</a>
+    </div>
   </div>
 
   <!-- Instructions Tutoriel Interactif -->
@@ -444,6 +477,7 @@
       </div>
 
       <button id="relaunch-tuto-btn" class="action-btn">🎓 Revoir le tutoriel</button>
+      <a href="https://jojosarcade.vercel.app/" class="action-btn">🕹️ Retour à l'arcade</a>
       <button id="reset-btn" class="action-btn">🗑️ Réinitialiser la partie</button>
     </div>
   </div>
