@@ -477,7 +477,7 @@
       </div>
 
       <button id="relaunch-tuto-btn" class="action-btn">🎓 Revoir le tutoriel</button>
-      <a href="https://jojosarcade.vercel.app/" class="action-btn">🕹️ Retour à l'arcade</a>
+      <a href="https://jojosarcade.vercel.app/" class="action-btn" id="arcade-btn-inventory">🕹️ Retour à l'arcade</a>
       <button id="reset-btn" class="action-btn">🗑️ Réinitialiser la partie</button>
     </div>
   </div>
@@ -502,6 +502,35 @@
     const ORB_RADIUS = 8;
     const SAVE_KEY = 'jojo_maze_save_data_v6';
     const TUTO_KEY = 'jojo_maze_tuto_done_v1';
+
+    // Fonction pour générer l'URL de redirection avec le Game ID et le Score
+    const GAME_ID = 0; // Labyrinthe = 0
+    function getArcadeReturnURL() {
+      const finalScore = Math.floor(totalDistanceTraveled);
+      return `https://jojosarcade.vercel.app/?gameId=${GAME_ID}&score=${finalScore}`;
+    }
+
+    // Gestion de la redirection pour les boutons de retour à l'arcade
+    document.addEventListener('DOMContentLoaded', () => {
+      const welcomeArcadeBtn = document.getElementById('arcade-btn-welcome');
+      const inventoryArcadeBtn = document.getElementById('arcade-btn-inventory');
+
+      if (welcomeArcadeBtn) {
+        welcomeArcadeBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          saveGame();
+          window.location.href = getArcadeReturnURL();
+        });
+      }
+
+      if (inventoryArcadeBtn) {
+        inventoryArcadeBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          saveGame();
+          window.location.href = getArcadeReturnURL();
+        });
+      }
+    });
 
     function resize() {
       canvas.width = window.innerWidth;
